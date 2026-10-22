@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:AsistenteIA.Models"
+             x:Class="AsistenteIA.Views.HistoryPage"
+             Title="Historial">
+    <Grid Padding="15">
+        <RefreshView IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding LoadItemsCommand}">
+            <CollectionView ItemsSource="{Binding Items}">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                        <Label Text="No hay consultas guardadas aún."
+                               HorizontalOptions="Center"
+                               FontSize="16"
+                               TextColor="Gray" />
+                        <Button Text="Actualizar Lista"
+                                Command="{Binding LoadItemsCommand}"
+                                HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:ConversationRecord">
+                        <Border Margin="0,5" Padding="12" StrokeShape="RoundRectangle 8">
+                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto" RowSpacing="5">
+                                <Label Grid.Column="0" Grid.Row="0"
+                                       Text="{Binding Prompt}"
+                                       FontAttributes="Bold"
+                                       FontSize="15" />
+
+                                <Label Grid.Column="0" Grid.Row="1"
+                                       Text="{Binding Answer}"
+                                       FontSize="13"
+                                       TextColor="#444444"
+                                       MaxLines="4" />
+
+                                <Label Grid.Column="0" Grid.Row="2"
+                                       Text="{Binding CreatedAt, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
+                                       FontSize="11"
+                                       TextColor="Gray" />
+
+                                <Button Grid.Column="1" Grid.RowSpan="3"
+                                        Text="Eliminar"
+                                        BackgroundColor="DarkRed"
+                                        TextColor="White"
+                                        VerticalOptions="Center"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCommand}"
+                                        CommandParameter="{Binding .}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>
