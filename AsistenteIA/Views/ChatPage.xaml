@@ -3,29 +3,64 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AsistenteIA.Views.ChatPage"
              Title="Consultar IA">
-    <Grid Padding="20" RowDefinitions="Auto, Auto, Auto, *, Auto" RowSpacing="12">
-        <Label Text="Asistente académico de IA"
-               FontSize="26"
-               FontAttributes="Bold" />
+    <ScrollView>
+        <Grid Padding="20" MaximumWidthRequest="{StaticResource ContentMaxWidth}" HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Consulta a la IA" Style="{StaticResource Title}"
+                       SemanticProperties.HeadingLevel="Level1" />
 
-        <Editor Grid.Row="1"
-                Text="{Binding Prompt}"
-                Placeholder="Escriba una consulta académica"
-                AutoSize="TextChanges"
-                MaximumHeightRequest="160" />
+                <Label Text="Plantilla" Style="{StaticResource Muted}" />
+                <Picker Title="Plantilla de prompt"
+                        ItemsSource="{Binding Templates}"
+                        SelectedItem="{Binding SelectedTemplate}"
+                        SemanticProperties.Description="Plantilla de consulta académica" />
 
-        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
-            <Button Text="Consultar" Command="{Binding AskCommand}" />
-            <Button Grid.Column="1" Text="Cancelar" Command="{Binding CancelCommand}" />
+                <Label Text="Proyecto (opcional)" Style="{StaticResource Muted}" />
+                <Picker Title="Proyecto"
+                        ItemsSource="{Binding Projects}"
+                        SelectedItem="{Binding SelectedProject}"
+                        SemanticProperties.Description="Proyecto al que se asocia la consulta" />
+
+                <Label Text="Su consulta" Style="{StaticResource Muted}" />
+                <Border Style="{StaticResource Card}" Padding="8" BackgroundColor="{StaticResource SurfaceAlt}">
+                    <Editor Text="{Binding Prompt}"
+                            Placeholder="Escriba una consulta académica"
+                            MaxLength="{Binding MaxLength}"
+                            AutoSize="TextChanges"
+                            MinimumHeightRequest="110"
+                            MaximumHeightRequest="220"
+                            SemanticProperties.Description="Consulta para la inteligencia artificial" />
+                </Border>
+                <Label Text="{Binding CharCountText}" Style="{StaticResource Meta}" HorizontalOptions="End"
+                       SemanticProperties.Description="Contador de caracteres" />
+
+                <Grid ColumnDefinitions="2*,*,*" ColumnSpacing="8">
+                    <Button Text="Consultar" Command="{Binding AskCommand}"
+                            SemanticProperties.Hint="Envía la consulta a la inteligencia artificial" />
+                    <Button Grid.Column="1" Text="Cancelar" Style="{StaticResource SecondaryButton}"
+                            Command="{Binding CancelCommand}"
+                            SemanticProperties.Hint="Cancela la consulta en curso" />
+                    <Button Grid.Column="2" Text="Guardar" Style="{StaticResource SuccessButton}"
+                            Command="{Binding SaveCommand}"
+                            SemanticProperties.Hint="Guarda la respuesta en el historial" />
+                </Grid>
+
+                <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+                <Label Text="{Binding StatusMessage}" Style="{StaticResource Muted}"
+                       SemanticProperties.Description="Estado de la consulta" />
+
+                <Border Style="{StaticResource Card}" MinimumHeightRequest="140">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Respuesta" Style="{StaticResource Subtitle}"
+                               SemanticProperties.HeadingLevel="Level2" />
+                        <Label Text="{Binding Answer}" LineBreakMode="WordWrap"
+                               SemanticProperties.Description="Respuesta de la inteligencia artificial" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Aviso: la IA puede cometer errores. Verifique la respuesta con fuentes confiables."
+                       Style="{StaticResource Muted}" />
+            </VerticalStackLayout>
         </Grid>
-
-        <ScrollView Grid.Row="3">
-            <Label Text="{Binding Answer}" LineBreakMode="WordWrap" />
-        </ScrollView>
-
-        <VerticalStackLayout Grid.Row="4">
-            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
-            <Label Text="{Binding StatusMessage}" FontSize="12" />
-        </VerticalStackLayout>
-    </Grid>
+    </ScrollView>
 </ContentPage>

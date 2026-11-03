@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
 using AsistenteIA.Services;
+using AsistenteIA.ViewModels;
+using AsistenteIA.Views;
+using Microsoft.Extensions.Logging;
 
 namespace AsistenteIA;
 
@@ -16,24 +18,41 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // --- Registro de Servicios REST y Seguridad ---
+        // --- HttpClient reutilizable (el endpoint/proveedor se cambia aquí) ---
         builder.Services.AddSingleton(new HttpClient
         {
-            BaseAddress = new Uri("https://generativelanguage.googleapis.com/v1beta/"),
+            BaseAddress = new Uri(AiService.BaseUrl),
             Timeout = TimeSpan.FromSeconds(60)
         });
 
+        // --- Servicios ---
+        builder.Services.AddSingleton(new RequestLimiter());
+        builder.Services.AddSingleton<INavigationService, ShellNavigationService>();
+        builder.Services.AddSingleton<IDialogService, ShellDialogService>();
+        builder.Services.AddSingleton<ProfileService>();
         builder.Services.AddSingleton<ApiKeyService>();
         builder.Services.AddSingleton<AiService>();
-        builder.Services.AddTransient<AsistenteIA.ViewModels.ChatViewModel>();
-        builder.Services.AddTransient<AsistenteIA.Views.ChatPage>();
-        builder.Services.AddSingleton<AsistenteIA.Services.DatabaseService>();
-        builder.Services.AddTransient<AsistenteIA.ViewModels.HistoryViewModel>();
-        builder.Services.AddTransient<AsistenteIA.Views.HistoryPage>();
-        builder.Services.AddTransient<AsistenteIA.ViewModels.SettingsViewModel>();
-        builder.Services.AddTransient<AsistenteIA.Views.SettingsPage>();
+        builder.Services.AddSingleton<DatabaseService>();
 
+        // --- ViewModels ---
+        builder.Services.AddTransient<HomeViewModel>();
+        builder.Services.AddTransient<ChatViewModel>();
+        builder.Services.AddTransient<HistoryViewModel>();
+        builder.Services.AddTransient<DetailViewModel>();
+        builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddTransient<ProjectsViewModel>();
+        builder.Services.AddTransient<ProjectDetailViewModel>();
+        builder.Services.AddTransient<ProfileViewModel>();
 
+        // --- Vistas ---
+        builder.Services.AddTransient<HomePage>();
+        builder.Services.AddTransient<ChatPage>();
+        builder.Services.AddTransient<HistoryPage>();
+        builder.Services.AddTransient<DetailPage>();
+        builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddTransient<ProjectsPage>();
+        builder.Services.AddTransient<ProjectDetailPage>();
+        builder.Services.AddTransient<ProfilePage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -42,4 +61,3 @@ public static class MauiProgram
         return builder.Build();
     }
 }
-

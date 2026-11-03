@@ -1,26 +1,110 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using AsistenteIA.Services;
 using AsistenteIA.Models;
+using AsistenteIA.Services;
 
 namespace AsistenteIA.ViewModels;
 
+// Permite abrir la consulta con un proyecto preseleccionado: //ChatPage?projectId=3
+[QueryProperty(nameof(StartProjectId), "projectId")]
 public partial class ChatViewModel : ObservableObject
 {
     private readonly AiService _aiService;
     private readonly DatabaseService _dbService;
+    private readonly IDialogService _dialogs;
     private CancellationTokenSource? _cts;
+    private int? _pendingProjectId;
 
-    [ObservableProperty] private string prompt = string.Empty;
+    // Datos de la última respuesta (el usuario puede editar el prompt después de consultar).
+    private string _lastPrompt = string.Empty;
+    private string _lastCategory = "General";
+    private int _lastProjectId;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CharCountText))]
+    private string prompt = string.Empty;
+
     [ObservableProperty] private string answer = string.Empty;
     [ObservableProperty] private string statusMessage = string.Empty;
     [ObservableProperty] private bool isBusy;
-    [ObservableProperty] private string selectedModel = "openai/gpt-5.4-nano";
+    [ObservableProperty] private PromptTemplate? selectedTemplate;
+    [ObservableProperty] private Project? selectedProject = Project.None;
 
-    public ChatViewModel(AiService aiService, DatabaseService dbService)
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+    private bool hasUnsavedAnswer;
+
+    public ObservableCollection<PromptTemplate> Templates { get; } =
+        new(PromptTemplate.Defaults);
+
+    public ObservableCollection<Project> Projects { get; } = [Project.None];
+
+    public int MaxLength => AiService.MaxPromptLength;
+    public string CharCountText => $"{Prompt?.Length ?? 0} / {AiService.MaxPromptLength}";
+
+    /// <summary>Recibe el id del proyecto desde la navegación (Shell query).</summary>
+    public string? StartProjectId
+    {
+        get => null;
+        set
+        {
+            if (int.TryParse(value, out int id))
+            {
+                _pendingProjectId = id;
+                ApplyPendingProject();
+            }
+        }
+    }
+
+    public ChatViewModel(AiService aiService, DatabaseService dbService, IDialogService dialogs)
     {
         _aiService = aiService;
         _dbService = dbService;
+        _dialogs = dialogs;
+        SelectedTemplate = Templates[0];
+    }
+
+    // RF07: al elegir una plantilla se carga en el editor para poder modificarla.
+    partial void OnSelectedTemplateChanged(PromptTemplate? value)
+    {
+        if (value is not null)
+            Prompt = value.Text;
+    }
+
+    /// <summary>Recarga la lista de proyectos (se llama cada vez que aparece la pantalla).</summary>
+    public async Task LoadProjectsAsync()
+    {
+        try
+        {
+            List<Project> list = await _dbService.GetProjectsAsync();
+            int currentId = SelectedProject?.Id ?? 0;
+
+            Projects.Clear();
+            Projects.Add(Project.None);
+            foreach (Project p in list)
+                Projects.Add(p);
+
+            SelectedProject = Projects.FirstOrDefault(p => p.Id == currentId) ?? Project.None;
+            ApplyPendingProject();
+            _pendingProjectId = null;
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"No se pudieron cargar los proyectos: {ex.Message}";
+        }
+    }
+
+    private void ApplyPendingProject()
+    {
+        if (_pendingProjectId is not int id) return;
+
+        Project? match = Projects.FirstOrDefault(p => p.Id == id);
+        if (match is not null)
+        {
+            SelectedProject = match;
+            _pendingProjectId = null;
+        }
     }
 
     [RelayCommand]
@@ -28,48 +112,56 @@ public partial class ChatViewModel : ObservableObject
     {
         if (IsBusy) return;
 
-        if (string.IsNullOrWhiteSpace(Prompt))
+        // RF02: validación antes de enviar
+        if (PromptValidator.Validate(Prompt) is { } validationError)
         {
-            StatusMessage = "Por favor ingrese una consulta.";
+            StatusMessage = validationError;
             return;
         }
+        string clean = Prompt.Trim();
 
+        _cts?.Dispose();
         _cts = new CancellationTokenSource();
+        bool cancelledByUser = false;
         IsBusy = true;
-        StatusMessage = "Consultando a Gemini...";
 
         try
         {
-            string activeModel = Preferences.Get("SelectedModel", "gemini-3.5-flash-lite");
-
-            Answer = await _aiService.AskAsync(Prompt, activeModel, _cts.Token);
-
-            try
+            // Privacidad: avisar antes de enviar datos personales a un proveedor externo.
+            IReadOnlyList<string> sensitive = SensitiveDataDetector.Detect(clean);
+            if (sensitive.Count > 0)
             {
-                var record = new ConversationRecord
+                bool send = await _dialogs.ConfirmAsync(
+                    "Posibles datos sensibles",
+                    $"La consulta parece incluir: {string.Join(", ", sensitive)}.\n\n" +
+                    "El texto se envía a un proveedor de IA externo. ¿Desea enviarla de todas formas?",
+                    "Enviar", "Revisar");
+                if (!send)
                 {
-                    Prompt = Prompt,
-                    Answer = Answer,
-                    CreatedAt = DateTime.UtcNow,
-                    Category = "General",
-                    IsVerified = false
-                };
+                    StatusMessage = "Envío cancelado: quite los datos personales y vuelva a intentar.";
+                    return;
+                }
+            }
 
-                await _dbService.SaveAsync(record);
-                StatusMessage = "Respuesta recibida y guardada en el historial.";
-            }
-            catch (Exception dbEx)
-            {
-                StatusMessage = $"Respuesta recibida, pero falló guardado local: {dbEx.Message}";
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            StatusMessage = "Consulta cancelada.";
+            HasUnsavedAnswer = false;
+            Answer = string.Empty;
+            StatusMessage = "Consultando el servicio...";
+
+            Project? project = SelectedProject is { Id: > 0 } p ? p : null;
+            string? context = project is null ? null : $"{project.Name}. {project.Description}";
+
+            Answer = await _aiService.AskAsync(clean, null, _cts.Token, context);
+            _lastPrompt = clean;
+            _lastCategory = SelectedTemplate?.Category ?? "General";
+            _lastProjectId = project?.Id ?? 0;
+            HasUnsavedAnswer = true;
+            StatusMessage = "Respuesta recibida. La IA puede equivocarse: verifique la información. " +
+                            "Pulse «Guardar» para añadirla al historial.";
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error del servicio: {ex.Message}";
+            cancelledByUser = _cts.IsCancellationRequested;
+            StatusMessage = AiService.GetFriendlyMessage(ex, cancelledByUser);
         }
         finally
         {
@@ -77,7 +169,31 @@ public partial class ChatViewModel : ObservableObject
         }
     }
 
-
     [RelayCommand]
     private void Cancel() => _cts?.Cancel();
+
+    private bool CanSave() => HasUnsavedAnswer;
+
+    [RelayCommand(CanExecute = nameof(CanSave))]
+    private async Task SaveAsync()
+    {
+        try
+        {
+            await _dbService.SaveAsync(new ConversationRecord
+            {
+                Prompt = _lastPrompt,
+                Answer = Answer,
+                CreatedAt = DateTime.UtcNow,
+                Category = _lastCategory,
+                ProjectId = _lastProjectId,
+                IsVerified = false
+            });
+            HasUnsavedAnswer = false;
+            StatusMessage = "Consulta guardada en el historial.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"No se pudo guardar localmente: {ex.Message}";
+        }
+    }
 }

@@ -1,4 +1,4 @@
-﻿using AsistenteIA.Services;
+using AsistenteIA.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -8,36 +8,72 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly ApiKeyService _keyService;
     private readonly AiService _aiService;
+    private readonly IDialogService _dialogs;
 
+    // Modelos sugeridos (el identificador sigue siendo editable porque el proveedor los cambia).
+    public IReadOnlyList<string> SuggestedModels { get; } =
+        ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3.6-flash", "gemini-3.8-flash"];
+
+    // La clave NUNCA se vuelve a mostrar: este campo solo sirve para escribir una nueva.
     [ObservableProperty] private string apiKey = string.Empty;
-    [ObservableProperty] private string selectedModel = "gemini-1.5-flash";
+    [ObservableProperty] private string selectedModel = AiService.GetSavedModel();
     [ObservableProperty] private string statusMessage = string.Empty;
+    [ObservableProperty] private string keyStatus = "Comprobando clave...";
     [ObservableProperty] private bool isBusy;
 
-    public SettingsViewModel(ApiKeyService keyService, AiService aiService)
+    public SettingsViewModel(ApiKeyService keyService, AiService aiService, IDialogService dialogs)
     {
         _keyService = keyService;
         _aiService = aiService;
-        LoadKeyAsync();
+        _dialogs = dialogs;
+        _ = RefreshKeyStatusAsync();
     }
 
-    private async void LoadKeyAsync()
+    private async Task RefreshKeyStatusAsync()
     {
-        ApiKey = await _keyService.GetAsync() ?? string.Empty;
+        try
+        {
+            KeyStatus = await _keyService.HasKeyAsync()
+                ? "Clave guardada de forma segura (almacén cifrado del dispositivo)"
+                : "Sin clave configurada";
+        }
+        catch
+        {
+            KeyStatus = "No se pudo leer el almacén seguro";
+        }
     }
 
     [RelayCommand]
     private async Task SaveKeyAsync()
     {
-        if (string.IsNullOrWhiteSpace(ApiKey))
+        string model = SelectedModel?.Trim() ?? string.Empty;
+        if (model.Length == 0)
         {
-            StatusMessage = "Por favor ingrese una clave válida.";
+            StatusMessage = "Indique el identificador del modelo.";
             return;
         }
 
-        await _keyService.SaveAsync(ApiKey);
-        Preferences.Set("SelectedModel", SelectedModel);
-        StatusMessage = "Clave y modelo guardados correctamente.";
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(ApiKey))
+            {
+                await _keyService.SaveAsync(ApiKey);
+                ApiKey = string.Empty;
+            }
+            else if (!await _keyService.HasKeyAsync())
+            {
+                StatusMessage = "Ingrese una clave válida.";
+                return;
+            }
+
+            Preferences.Set(AiService.ModelPreferenceKey, model);
+            await RefreshKeyStatusAsync();
+            StatusMessage = "Configuración guardada correctamente.";
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"No se pudo guardar: {ex.Message}";
+        }
     }
 
     [RelayCommand]
@@ -50,13 +86,22 @@ public partial class SettingsViewModel : ObservableObject
 
         try
         {
-            string testPrompt = "Responde 'Conexión exitosa' en una frase corta.";
-            string response = await _aiService.AskAsync(testPrompt, SelectedModel);
-            StatusMessage = $"Prueba completada: {response}";
+            // Si el usuario escribió una clave nueva, se guarda antes de probar.
+            if (!string.IsNullOrWhiteSpace(ApiKey))
+            {
+                await _keyService.SaveAsync(ApiKey);
+                ApiKey = string.Empty;
+                await RefreshKeyStatusAsync();
+            }
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            string response = await _aiService.AskAsync(
+                "Responde con una frase corta: conexión exitosa.", SelectedModel, cts.Token);
+            StatusMessage = $"✔ Conexión exitosa. Respuesta: {response}";
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error de prueba: {ex.Message}";
+            StatusMessage = $"✘ {AiService.GetFriendlyMessage(ex)}";
         }
         finally
         {
@@ -67,14 +112,13 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private async Task RemoveKeyAsync()
     {
-        bool confirm = await Shell.Current.DisplayAlert(
-            "Confirmar", "¿Desea eliminar la clave guardada?", "Sí", "No");
+        bool confirm = await _dialogs.ConfirmAsync(
+            "Confirmar", "¿Desea eliminar la clave guardada?");
+        if (!confirm) return;
 
-        if (confirm)
-        {
-            _keyService.Remove();
-            ApiKey = string.Empty;
-            StatusMessage = "Clave eliminada correctamente.";
-        }
+        _keyService.Remove();
+        ApiKey = string.Empty;
+        await RefreshKeyStatusAsync();
+        StatusMessage = "Clave eliminada correctamente.";
     }
 }

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:AsistenteIA.Models"
+             x:Class="AsistenteIA.Views.ProjectsPage"
+             x:Name="Root"
+             Title="Proyectos">
+    <Grid Padding="15" RowDefinitions="Auto,Auto,*" RowSpacing="10"
+          MaximumWidthRequest="{StaticResource ContentMaxWidth}" HorizontalOptions="Center">
+
+        <VerticalStackLayout Spacing="4">
+            <Label Text="Mis proyectos" Style="{StaticResource Title}"
+                   SemanticProperties.HeadingLevel="Level1" />
+            <Label Text="Agrupe sus consultas por materia, taller o trabajo." Style="{StaticResource Muted}" />
+        </VerticalStackLayout>
+
+        <Button Grid.Row="1" Text="+ Nuevo proyecto"
+                Command="{Binding NewProjectCommand}"
+                SemanticProperties.Hint="Abre el formulario para crear un proyecto" />
+
+        <RefreshView Grid.Row="2"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding LoadCommand}">
+            <CollectionView ItemsSource="{Binding Items}">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10" Padding="20">
+                        <Label Text="Aún no tiene proyectos." HorizontalOptions="Center"
+                               Style="{StaticResource Subtitle}" />
+                        <Label Text="Cree uno para organizar sus consultas por materia o trabajo."
+                               HorizontalOptions="Center" HorizontalTextAlignment="Center"
+                               Style="{StaticResource Muted}" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Project">
+                        <Border Style="{StaticResource Card}" Margin="0,5"
+                                SemanticProperties.Description="{Binding Name}"
+                                SemanticProperties.Hint="Abre el proyecto">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenProjectCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <VerticalStackLayout Spacing="4">
+                                <Label Text="{Binding Name}" FontFamily="OpenSansSemibold" FontSize="16"
+                                       LineBreakMode="TailTruncation" MaxLines="1" />
+                                <Label Text="{Binding DescriptionText}" Style="{StaticResource Muted}" FontSize="13"
+                                       MaxLines="2" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding CountText}" Style="{StaticResource Meta}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

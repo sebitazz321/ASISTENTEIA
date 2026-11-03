@@ -6,11 +6,14 @@
     xmlns:views="clr-namespace:AsistenteIA.Views"
     Title="AsistenteIA">
 
+    <!-- Cinco pestañas principales. Configuración, Detalle y Detalle de proyecto
+         son rutas secundarias (se abren desde Perfil, Historial y Proyectos). -->
     <TabBar>
-        <ShellContent Title="Inicio" ContentTemplate="{DataTemplate views:HomePage}" />
-        <ShellContent Title="Consultar" ContentTemplate="{DataTemplate views:ChatPage}" />
-        <ShellContent Title="Historial" ContentTemplate="{DataTemplate views:HistoryPage}" />
-        <ShellContent Title="Configuración" ContentTemplate="{DataTemplate views:SettingsPage}" />
+        <ShellContent Title="Inicio" Route="HomePage" ContentTemplate="{DataTemplate views:HomePage}" />
+        <ShellContent Title="Consultar" Route="ChatPage" ContentTemplate="{DataTemplate views:ChatPage}" />
+        <ShellContent Title="Proyectos" Route="ProjectsPage" ContentTemplate="{DataTemplate views:ProjectsPage}" />
+        <ShellContent Title="Historial" Route="HistoryPage" ContentTemplate="{DataTemplate views:HistoryPage}" />
+        <ShellContent Title="Perfil" Route="ProfilePage" ContentTemplate="{DataTemplate views:ProfilePage}" />
     </TabBar>
 
 </Shell>

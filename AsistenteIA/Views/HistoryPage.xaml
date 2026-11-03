@@ -3,49 +3,57 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:models="clr-namespace:AsistenteIA.Models"
              x:Class="AsistenteIA.Views.HistoryPage"
+             x:Name="Root"
              Title="Historial">
-    <Grid Padding="15">
-        <RefreshView IsRefreshing="{Binding IsRefreshing}"
+    <Grid Padding="15" RowDefinitions="Auto,Auto,*" RowSpacing="8"
+          MaximumWidthRequest="{StaticResource ContentMaxWidth}" HorizontalOptions="Center">
+        <SearchBar Text="{Binding SearchText}"
+                   Placeholder="Buscar en el historial"
+                   SemanticProperties.Description="Buscar consultas guardadas" />
+
+        <HorizontalStackLayout Grid.Row="1" Spacing="8">
+            <Switch IsToggled="{Binding OnlyVerified}"
+                    SemanticProperties.Description="Mostrar solo consultas verificadas" />
+            <Label Text="Solo verificadas" VerticalOptions="Center" Style="{StaticResource Muted}" />
+        </HorizontalStackLayout>
+
+        <RefreshView Grid.Row="2"
+                     IsRefreshing="{Binding IsRefreshing}"
                      Command="{Binding LoadItemsCommand}">
             <CollectionView ItemsSource="{Binding Items}">
                 <CollectionView.EmptyView>
                     <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                        <Label Text="No hay consultas guardadas aún."
-                               HorizontalOptions="Center"
-                               FontSize="16"
-                               TextColor="Gray" />
-                        <Button Text="Actualizar Lista"
+                        <Label Text="No hay consultas para mostrar."
+                               HorizontalOptions="Center" Style="{StaticResource Muted}" />
+                        <Button Text="Actualizar lista"
                                 Command="{Binding LoadItemsCommand}"
                                 HorizontalOptions="Center" />
                     </VerticalStackLayout>
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="models:ConversationRecord">
-                        <Border Margin="0,5" Padding="12" StrokeShape="RoundRectangle 8">
-                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto" RowSpacing="5">
-                                <Label Grid.Column="0" Grid.Row="0"
-                                       Text="{Binding Prompt}"
-                                       FontAttributes="Bold"
-                                       FontSize="15" />
-
-                                <Label Grid.Column="0" Grid.Row="1"
-                                       Text="{Binding Answer}"
-                                       FontSize="13"
-                                       TextColor="#444444"
-                                       MaxLines="4" />
-
-                                <Label Grid.Column="0" Grid.Row="2"
-                                       Text="{Binding CreatedAt, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
-                                       FontSize="11"
-                                       TextColor="Gray" />
-
+                        <Border Style="{StaticResource Card}" Margin="0,5"
+                                SemanticProperties.Hint="Abre el detalle de la consulta">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding Source={x:Reference Root}, Path=BindingContext.OpenDetailCommand}"
+                                    CommandParameter="{Binding .}" />
+                            </Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto" RowSpacing="4" ColumnSpacing="10">
+                                <Label Grid.Row="0" Text="{Binding Prompt}"
+                                       FontFamily="OpenSansSemibold" FontSize="15" MaxLines="2"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Grid.Row="1" Text="{Binding Answer}"
+                                       Style="{StaticResource Muted}" FontSize="13" MaxLines="3"
+                                       LineBreakMode="TailTruncation" />
+                                <Label Grid.Row="2" Text="{Binding MetaText}" Style="{StaticResource Meta}" />
                                 <Button Grid.Column="1" Grid.RowSpan="3"
                                         Text="Eliminar"
-                                        BackgroundColor="DarkRed"
-                                        TextColor="White"
+                                        Style="{StaticResource DangerButton}" MinimumHeightRequest="44" Padding="12,0"
                                         VerticalOptions="Center"
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.DeleteCommand}"
-                                        CommandParameter="{Binding .}" />
+                                        Command="{Binding Source={x:Reference Root}, Path=BindingContext.DeleteCommand}"
+                                        CommandParameter="{Binding .}"
+                                        SemanticProperties.Hint="Elimina esta consulta del historial" />
                             </Grid>
                         </Border>
                     </DataTemplate>

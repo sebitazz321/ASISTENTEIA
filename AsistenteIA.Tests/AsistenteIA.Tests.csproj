@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- Pruebas unitarias de la lógica que no depende de MAUI (validación, privacidad, límite de uso).
+	     Se enlazan los archivos fuente para poder ejecutarlas con "dotnet test" en cualquier equipo. -->
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="..\AsistenteIA\Services\PromptValidator.cs" Link="Linked\PromptValidator.cs" />
+		<Compile Include="..\AsistenteIA\Services\SensitiveDataDetector.cs" Link="Linked\SensitiveDataDetector.cs" />
+		<Compile Include="..\AsistenteIA\Services\RequestLimiter.cs" Link="Linked\RequestLimiter.cs" />
+		<Compile Include="..\AsistenteIA\Models\UserProfile.cs" Link="Linked\UserProfile.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+		<PackageReference Include="xunit" Version="2.9.2" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+	</ItemGroup>
+
+</Project>

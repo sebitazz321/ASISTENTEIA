@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AsistenteIA
 {
@@ -7,6 +7,7 @@ namespace AsistenteIA
         public App()
         {
             InitializeComponent();
+            UserAppTheme = AppTheme.Dark; // estilo oscuro moderno en todos los dispositivos
         }
 
         protected override Window CreateWindow(IActivationState? activationState)

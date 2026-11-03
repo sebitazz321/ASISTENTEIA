@@ -4,40 +4,64 @@
              x:Class="AsistenteIA.Views.SettingsPage"
              Title="Configuración">
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="15">
-            <Label Text="Configuración de Credenciales"
-                   FontSize="22" FontAttributes="Bold" />
+        <Grid Padding="20" MaximumWidthRequest="{StaticResource ContentMaxWidth}" HorizontalOptions="Center">
+        <VerticalStackLayout Spacing="12">
+            <Label Text="Configuración de la API"
+                   Style="{StaticResource Title}"
+                   SemanticProperties.HeadingLevel="Level1" />
 
-            <!-- Advertencia de Seguridad y Uso Responsable -->
-            <Frame BackgroundColor="#FFF8E1" BorderColor="#FFA000" Padding="12">
-                <Label Text="⚠️ AVISO DE PRIVACIDAD: No ingrese datos personales, contraseñas, información confidencial ni documentos institucionales en los prompts."
-                       TextColor="#B71C1C" FontSize="12" FontAttributes="Bold" />
-            </Frame>
+            <Border Style="{StaticResource WarningCard}">
+                <Label Text="AVISO DE PRIVACIDAD: no ingrese datos personales, contraseñas, información confidencial ni documentos institucionales sensibles en sus consultas."
+                       TextColor="{StaticResource WarningText}" FontSize="12" FontFamily="OpenSansSemibold" />
+            </Border>
 
-            <!-- Clave API -->
-            <Label Text="Clave de API:" FontAttributes="Bold" />
-            <Entry Text="{Binding ApiKey}"
-                   IsPassword="True"
-                   Placeholder="Ingrese la clave autorizada" />
+            <Label Text="Clave de API" Style="{StaticResource Subtitle}" />
+            <Label Text="{Binding KeyStatus}" Style="{StaticResource Muted}" />
+            <Entry Text="{Binding ApiKey}" IsPassword="True"
+                   IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
+                   Placeholder="Escriba aquí una clave nueva"
+                   SemanticProperties.Description="Campo para la clave de la API, oculto" />
 
-            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
-                <Button Text="Guardar Clave" Command="{Binding SaveKeyCommand}" />
-                <Button Grid.Column="1" Text="Probar Conexión"
+            <Label Text="Modelo de IA" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
+            <Picker Title="Modelos sugeridos"
+                    ItemsSource="{Binding SuggestedModels}"
+                    SelectedItem="{Binding SelectedModel}" />
+            <Entry Text="{Binding SelectedModel}" Placeholder="Identificador del modelo"
+                   SemanticProperties.Description="Identificador del modelo de IA" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,6,0,0">
+                <Button Text="Guardar" Command="{Binding SaveKeyCommand}" />
+                <Button Grid.Column="1" Text="Probar conexión"
                         Command="{Binding TestConnectionCommand}"
-                        BackgroundColor="#2E7D32" TextColor="White" />
+                        Style="{StaticResource SuccessButton}" />
             </Grid>
+            <Button Text="Eliminar clave" Command="{Binding RemoveKeyCommand}"
+                    Style="{StaticResource DangerButton}" />
 
-            <Button Text="Eliminar Clave"
-                    Command="{Binding RemoveKeyCommand}"
-                    BackgroundColor="DarkRed" TextColor="White" Margin="0,5,0,0" />
-
-            <!-- Selector de Modelo -->
-            <Label Text="Modelo de IA:" FontAttributes="Bold" Margin="0,10,0,0" />
-            <Entry Text="{Binding SelectedModel}" Placeholder="Ej: openai/gpt-5.4-nano" />
-
-            <!-- Estado -->
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
-            <Label Text="{Binding StatusMessage}" FontSize="13" TextColor="Gray" HorizontalOptions="Center" />
+            <Label Text="{Binding StatusMessage}" Style="{StaticResource Muted}" FontSize="13"
+                   HorizontalOptions="Center" HorizontalTextAlignment="Center" />
+
+            <BoxView HeightRequest="1" Margin="0,10" />
+
+            <Label Text="Acerca de" Style="{StaticResource Title}"
+                   SemanticProperties.HeadingLevel="Level1" />
+
+            <Label Text="Finalidad" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
+            <Label Text="AsistenteIA es una aplicación académica que envía consultas a un modelo de IA mediante una API REST, muestra la respuesta y guarda un historial local para estudio." />
+
+            <Label Text="Autoría" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
+            <Label Text="Proyecto final de Programación Avanzada y Aplicada, VI semestre, Tecnología de Desarrollo de Software. Integrantes: [escriba aquí los nombres del equipo]." />
+
+            <Label Text="Fuentes técnicas" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
+            <Label Text="Microsoft Learn (.NET MAUI, HttpClient, inyección de dependencias) y documentación de la API de Google Gemini." />
+
+            <Label Text="Privacidad" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
+            <Label Text="La clave se guarda en el almacén seguro del dispositivo (SecureStorage). El historial se guarda solo en este dispositivo (SQLite). El texto de cada consulta se envía al proveedor de IA para generar la respuesta." />
+
+            <Label Text="Límites del uso de IA" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
+            <Label Text="La IA puede dar respuestas incorrectas, incompletas o inventadas. No es una autoridad: contraste la información con fuentes confiables y use la marca «verificada» solo después de hacerlo." />
         </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 </ContentPage>

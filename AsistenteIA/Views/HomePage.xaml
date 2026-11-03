@@ -3,8 +3,55 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="AsistenteIA.Views.HomePage"
              Title="Inicio">
-    <VerticalStackLayout Padding="20" Spacing="10">
-        <Label Text="Bienvenido al Asistente IA" FontSize="22" FontAttributes="Bold" />
-        <Label Text="Utiliza el menú de navegación para empezar a consultar." />
-    </VerticalStackLayout>
+    <ScrollView>
+        <Grid Padding="20" MaximumWidthRequest="{StaticResource ContentMaxWidth}" HorizontalOptions="Center">
+            <VerticalStackLayout Spacing="16">
+
+                <!-- Hero -->
+                <Border StrokeThickness="0" StrokeShape="RoundRectangle 18" Padding="24"
+                        Background="{StaticResource HeroGradient}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="{Binding Greeting}" FontSize="28" TextColor="White"
+                               FontFamily="OpenSansSemibold"
+                               SemanticProperties.HeadingLevel="Level1" />
+                        <Label Text="Asistente académico con inteligencia artificial: estudie, resuma y aclare conceptos."
+                               TextColor="#E4E4E7" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Accesos rápidos" Style="{StaticResource Subtitle}"
+                       SemanticProperties.HeadingLevel="Level2" />
+
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="10" RowSpacing="10">
+                    <Button Text="Nueva consulta"
+                            Command="{Binding GoToCommand}" CommandParameter="ChatPage"
+                            SemanticProperties.Hint="Abre la pantalla para consultar a la IA" />
+                    <Button Grid.Column="1" Text="Mis proyectos" Style="{StaticResource SecondaryButton}"
+                            Command="{Binding GoToCommand}" CommandParameter="ProjectsPage"
+                            SemanticProperties.Hint="Abre la lista de proyectos" />
+                    <Button Grid.Row="1" Text="Historial" Style="{StaticResource SecondaryButton}"
+                            Command="{Binding GoToCommand}" CommandParameter="HistoryPage"
+                            SemanticProperties.Hint="Abre las consultas guardadas" />
+                    <Button Grid.Row="1" Grid.Column="1" Text="Mi perfil" Style="{StaticResource SecondaryButton}"
+                            Command="{Binding GoToCommand}" CommandParameter="ProfilePage"
+                            SemanticProperties.Hint="Abre su perfil y estadísticas" />
+                </Grid>
+                <Button Text="Configurar clave y modelo" Style="{StaticResource SecondaryButton}"
+                        Command="{Binding OpenSettingsCommand}"
+                        SemanticProperties.Hint="Abre la configuración de la API" />
+
+                <Label Text="Recomendaciones de uso" Style="{StaticResource Subtitle}" Margin="0,8,0,0"
+                       SemanticProperties.HeadingLevel="Level2" />
+
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="1.  Configure primero su clave de API (Perfil › Configuración)." />
+                        <Label Text="2.  Sea específico: indique tema, nivel y formato esperado." />
+                        <Label Text="3.  La IA puede equivocarse o inventar datos: verifique siempre." />
+                        <Label Text="4.  No escriba datos personales, contraseñas ni información confidencial." />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </Grid>
+    </ScrollView>
 </ContentPage>

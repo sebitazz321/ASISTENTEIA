@@ -1,4 +1,4 @@
-﻿using AsistenteIA.Views;
+using AsistenteIA.Views;
 
 namespace AsistenteIA;
 
@@ -8,7 +8,9 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        // Registro de ruta para navegación secundaria
+        // Rutas secundarias (no están en la TabBar): se abren con GoToAsync y muestran botón «atrás».
         Routing.RegisterRoute(nameof(DetailPage), typeof(DetailPage));
+        Routing.RegisterRoute(nameof(ProjectDetailPage), typeof(ProjectDetailPage));
+        Routing.RegisterRoute(nameof(SettingsPage), typeof(SettingsPage));
     }
 }

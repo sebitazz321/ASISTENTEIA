@@ -1,25 +1,33 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using AsistenteIA.Models;
 using AsistenteIA.Services;
+using AsistenteIA.Views;
 
 namespace AsistenteIA.ViewModels;
 
 public partial class HistoryViewModel : ObservableObject
 {
     private readonly DatabaseService _dbService;
+    private readonly INavigationService _navigation;
+    private readonly IDialogService _dialogs;
+    private List<ConversationRecord> _all = [];
 
-    [ObservableProperty]
-    private ObservableCollection<ConversationRecord> items = [];
+    [ObservableProperty] private ObservableCollection<ConversationRecord> items = [];
+    [ObservableProperty] private bool isRefreshing;
+    [ObservableProperty] private string searchText = string.Empty;
+    [ObservableProperty] private bool onlyVerified;
 
-    [ObservableProperty]
-    private bool isRefreshing;
-
-    public HistoryViewModel(DatabaseService dbService)
+    public HistoryViewModel(DatabaseService dbService, INavigationService navigation, IDialogService dialogs)
     {
         _dbService = dbService;
+        _navigation = navigation;
+        _dialogs = dialogs;
     }
+
+    partial void OnSearchTextChanged(string value) => ApplyFilter();
+    partial void OnOnlyVerifiedChanged(bool value) => ApplyFilter();
 
     [RelayCommand]
     public async Task LoadItemsAsync()
@@ -27,12 +35,19 @@ public partial class HistoryViewModel : ObservableObject
         IsRefreshing = true;
         try
         {
-            var list = await _dbService.GetItemsAsync();
-            Items = new ObservableCollection<ConversationRecord>(list);
+            _all = await _dbService.GetItemsAsync();
+
+            // Muestra el nombre del proyecto en cada consulta.
+            Dictionary<int, string> names = (await _dbService.GetProjectsAsync())
+                .ToDictionary(p => p.Id, p => p.Name);
+            foreach (ConversationRecord r in _all)
+                r.ProjectName = names.GetValueOrDefault(r.ProjectId, string.Empty);
+
+            ApplyFilter();
         }
         catch (Exception ex)
         {
-            await Shell.Current.DisplayAlert("Error", $"No se pudo cargar el historial: {ex.Message}", "OK");
+            await _dialogs.AlertAsync("Error", $"No se pudo cargar el historial: {ex.Message}");
         }
         finally
         {
@@ -40,18 +55,42 @@ public partial class HistoryViewModel : ObservableObject
         }
     }
 
+    // RF06: filtra por texto (prompt, respuesta, categoría o proyecto) y por estado de verificación.
+    private void ApplyFilter()
+    {
+        string term = SearchText?.Trim() ?? string.Empty;
+
+        IEnumerable<ConversationRecord> query = _all;
+        if (OnlyVerified)
+            query = query.Where(r => r.IsVerified);
+        if (term.Length > 0)
+            query = query.Where(r =>
+                r.Prompt.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                r.Answer.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                r.Category.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                r.ProjectName.Contains(term, StringComparison.OrdinalIgnoreCase));
+
+        Items = new ObservableCollection<ConversationRecord>(query);
+    }
+
     [RelayCommand]
-    private async Task DeleteAsync(ConversationRecord record)
+    private Task OpenDetailAsync(ConversationRecord? record) =>
+        record is null
+            ? Task.CompletedTask
+            : _navigation.GoToAsync(nameof(DetailPage),
+                new Dictionary<string, object> { ["Record"] = record });
+
+    [RelayCommand]
+    private async Task DeleteAsync(ConversationRecord? record)
     {
         if (record is null) return;
 
-        bool confirm = await Shell.Current.DisplayAlert(
-            "Confirmar", "¿Desea eliminar esta consulta del historial?", "Sí", "No");
+        bool confirm = await _dialogs.ConfirmAsync(
+            "Confirmar", "¿Desea eliminar esta consulta del historial?");
+        if (!confirm) return;
 
-        if (confirm)
-        {
-            await _dbService.DeleteAsync(record);
-            Items.Remove(record);
-        }
+        await _dbService.DeleteAsync(record);
+        _all.Remove(record);
+        Items.Remove(record);
     }
 }
