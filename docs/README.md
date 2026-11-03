@@ -17,7 +17,7 @@ historial en SQLite, organiza el trabajo en proyectos y aplica criterios de segu
 | [05-Manual-de-usuario.md](05-Manual-de-usuario.md) | Manual de usuario |
 | [06-Manual-tecnico.md](06-Manual-tecnico.md) | Manual técnico breve |
 | [07-Sustentacion-y-entrega.md](07-Sustentacion-y-entrega.md) | Lista de entrega, guion del video, preguntas de sustentación, declaración de uso de IA |
-| [complementaria/](complementaria/README.md) | **18 entregables complementarios** (diagramas, ERD, diccionario, API REST, proveedores Gemini/Pollinations, API Keys, errores, requisitos técnicos, auditoría, manuales, historial, Git, conclusiones) y comparación con el documento final |
+| [documentacion-final/](documentacion-final/README.md) | **Documentación final completa** (21 capítulos con diagramas y capturas) y su versión en Word y PDF |
 
 ## Cumplimiento de la rúbrica (50 puntos)
 
