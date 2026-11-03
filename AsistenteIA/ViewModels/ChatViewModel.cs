@@ -145,7 +145,7 @@ public partial class ChatViewModel : ObservableObject
 
             HasUnsavedAnswer = false;
             Answer = string.Empty;
-            StatusMessage = "Consultando el servicio...";
+            StatusMessage = $"Consultando {AiService.CurrentProviderInfo.DisplayName}...";
 
             Project? project = SelectedProject is { Id: > 0 } p ? p : null;
             string? context = project is null ? null : $"{project.Name}. {project.Description}";
@@ -155,7 +155,8 @@ public partial class ChatViewModel : ObservableObject
             _lastCategory = SelectedTemplate?.Category ?? "General";
             _lastProjectId = project?.Id ?? 0;
             HasUnsavedAnswer = true;
-            StatusMessage = "Respuesta recibida. La IA puede equivocarse: verifique la información. " +
+            StatusMessage = $"Respuesta recibida de {AiService.CurrentProviderInfo.DisplayName}. " +
+                            "La IA puede equivocarse: verifique la información. " +
                             "Pulse «Guardar» para añadirla al historial.";
         }
         catch (Exception ex)

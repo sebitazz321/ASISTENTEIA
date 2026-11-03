@@ -80,3 +80,44 @@ public class ApiErrorDetail
     [JsonPropertyName("message")]
     public string? Message { get; set; }
 }
+
+// =====================================================================
+// Formato compatible con OpenAI (usado por Pollinations: POST /v1/chat/completions)
+// =====================================================================
+
+public class OpenAiChatRequest
+{
+    [JsonPropertyName("model")]
+    public string Model { get; set; } = string.Empty;
+
+    [JsonPropertyName("messages")]
+    public List<OpenAiMessage> Messages { get; set; } = [];
+
+    [JsonPropertyName("max_tokens")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? MaxTokens { get; set; }
+}
+
+public class OpenAiMessage
+{
+    [JsonPropertyName("role")]
+    public string Role { get; set; } = "user";
+
+    [JsonPropertyName("content")]
+    public string Content { get; set; } = string.Empty;
+}
+
+public class OpenAiChatResponse
+{
+    [JsonPropertyName("choices")]
+    public List<OpenAiChoice> Choices { get; set; } = [];
+}
+
+public class OpenAiChoice
+{
+    [JsonPropertyName("message")]
+    public OpenAiMessage? Message { get; set; }
+
+    [JsonPropertyName("finish_reason")]
+    public string? FinishReason { get; set; }
+}

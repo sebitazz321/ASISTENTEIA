@@ -15,11 +15,20 @@
                        TextColor="{StaticResource WarningText}" FontSize="12" FontFamily="OpenSansSemibold" />
             </Border>
 
-            <Label Text="Clave de API" Style="{StaticResource Subtitle}" />
+            <Label Text="Proveedor de IA" Style="{StaticResource Subtitle}" />
+            <Label Text="{Binding ActiveProviderText}" Style="{StaticResource Muted}" />
+            <Picker Title="Proveedor"
+                    ItemsSource="{Binding Providers}"
+                    ItemDisplayBinding="{Binding DisplayName}"
+                    SelectedItem="{Binding SelectedProvider}"
+                    SemanticProperties.Description="Selector del proveedor de inteligencia artificial" />
+            <Label Text="{Binding ProviderDescription}" Style="{StaticResource Muted}" FontSize="12" />
+
+            <Label Text="Clave de API" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
             <Label Text="{Binding KeyStatus}" Style="{StaticResource Muted}" />
             <Entry Text="{Binding ApiKey}" IsPassword="True"
                    IsSpellCheckEnabled="False" IsTextPredictionEnabled="False"
-                   Placeholder="Escriba aquí una clave nueva"
+                   Placeholder="{Binding KeyPlaceholder}"
                    SemanticProperties.Description="Campo para la clave de la API, oculto" />
 
             <Label Text="Modelo de IA" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
@@ -51,10 +60,10 @@
             <Label Text="AsistenteIA es una aplicación académica que envía consultas a un modelo de IA mediante una API REST, muestra la respuesta y guarda un historial local para estudio." />
 
             <Label Text="Autoría" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
-            <Label Text="Proyecto final de Programación Avanzada y Aplicada, VI semestre, Tecnología de Desarrollo de Software. Integrantes: [escriba aquí los nombres del equipo]." />
+            <Label Text="Proyecto final de Programación Avanzada y Aplicada, VI semestre, Tecnología de Desarrollo de Software. Integrantes: Juan Carlos Díaz Cifuentes y Sebastián Grande Moreno." />
 
             <Label Text="Fuentes técnicas" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
-            <Label Text="Microsoft Learn (.NET MAUI, HttpClient, inyección de dependencias) y documentación de la API de Google Gemini." />
+            <Label Text="Microsoft Learn (.NET MAUI, HttpClient, inyección de dependencias) y documentación de las API de Google Gemini y Pollinations." />
 
             <Label Text="Privacidad" Style="{StaticResource Subtitle}" Margin="0,6,0,0" />
             <Label Text="La clave se guarda en el almacén seguro del dispositivo (SecureStorage). El historial se guarda solo en este dispositivo (SQLite). El texto de cada consulta se envía al proveedor de IA para generar la respuesta." />
