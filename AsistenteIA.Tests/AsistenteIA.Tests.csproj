@@ -19,6 +19,8 @@
 		<Compile Include="..\AsistenteIA\Services\SensitiveDataDetector.cs" Link="Linked\SensitiveDataDetector.cs" />
 		<Compile Include="..\AsistenteIA\Services\RequestLimiter.cs" Link="Linked\RequestLimiter.cs" />
 		<Compile Include="..\AsistenteIA\Models\UserProfile.cs" Link="Linked\UserProfile.cs" />
+		<Compile Include="..\AsistenteIA\Models\AiProvider.cs" Link="Linked\AiProvider.cs" />
+		<Compile Include="..\AsistenteIA\Services\AiErrorMapper.cs" Link="Linked\AiErrorMapper.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
