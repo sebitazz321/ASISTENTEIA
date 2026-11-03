@@ -1,7 +1,7 @@
 # AsistenteIA – Documentación del proyecto final
 
 **Asignatura:** Programación Avanzada y Aplicada · VI semestre · Tecnología de Desarrollo de Software
-**Integrantes:** _(completar con nombre completo de cada integrante)_
+**Integrantes:** Juan Carlos Díaz Cifuentes · Sebastián Grande Moreno
 
 Aplicación .NET MAUI (Windows / Android) que consulta un modelo de IA mediante una API REST, guarda el
 historial en SQLite, organiza el trabajo en proyectos y aplica criterios de seguridad, privacidad y uso responsable.
@@ -17,6 +17,7 @@ historial en SQLite, organiza el trabajo en proyectos y aplica criterios de segu
 | [05-Manual-de-usuario.md](05-Manual-de-usuario.md) | Manual de usuario |
 | [06-Manual-tecnico.md](06-Manual-tecnico.md) | Manual técnico breve |
 | [07-Sustentacion-y-entrega.md](07-Sustentacion-y-entrega.md) | Lista de entrega, guion del video, preguntas de sustentación, declaración de uso de IA |
+| [complementaria/](complementaria/README.md) | **18 entregables complementarios** (diagramas, ERD, diccionario, API REST, proveedores Gemini/Pollinations, API Keys, errores, requisitos técnicos, auditoría, manuales, historial, Git, conclusiones) y comparación con el documento final |
 
 ## Cumplimiento de la rúbrica (50 puntos)
 

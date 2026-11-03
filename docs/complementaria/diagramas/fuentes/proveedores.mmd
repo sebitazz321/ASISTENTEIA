@@ -1,0 +1,24 @@
+sequenceDiagram
+    actor U as Estudiante
+    participant S as SettingsPage / SettingsViewModel
+    participant P as Preferences
+    participant K as SecureStorage
+    participant C as ChatViewModel
+    participant A as AiService
+    participant G as Gemini / Pollinations
+    U->>S: Elige proveedor, escribe clave y modelo
+    S->>K: SaveAsync(clave, proveedor)
+    S->>P: SelectedProvider + modelo del proveedor
+    U->>C: Escribe consulta y pulsa Consultar
+    C->>A: AskAsync(prompt)
+    A->>P: GetSelectedProvider() / GetSavedModel()
+    A->>K: GetAsync(proveedor)
+    alt Proveedor = Gemini
+        A->>G: POST /v1beta/models/{modelo}:generateContent<br/>x-goog-api-key
+        G-->>A: candidates[0].content.parts[].text
+    else Proveedor = Pollinations
+        A->>G: POST /v1/chat/completions<br/>Authorization: Bearer
+        G-->>A: choices[0].message.content
+    end
+    A-->>C: texto o excepción → AiErrorMapper
+    C-->>U: Respuesta / mensaje de error

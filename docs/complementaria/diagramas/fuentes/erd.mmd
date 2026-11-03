@@ -1,0 +1,18 @@
+erDiagram
+    PROJECT ||--o{ CONVERSATIONRECORD : "agrupa (ProjectId; 0 = sin proyecto)"
+    PROJECT {
+        INTEGER Id PK "autoincremental"
+        VARCHAR Name "3-60 caracteres"
+        VARCHAR Description "máx. 300"
+        BIGINT CreatedAt "UTC (ticks)"
+    }
+    CONVERSATIONRECORD {
+        INTEGER Id PK "autoincremental"
+        VARCHAR Prompt "5-2000 caracteres"
+        VARCHAR Answer "respuesta de la IA"
+        BIGINT CreatedAt "UTC (ticks)"
+        VARCHAR Category "de la plantilla"
+        INTEGER IsVerified "0/1"
+        INTEGER ProjectId FK "lógica, sin restricción en SQLite"
+        VARCHAR Note "máx. 500"
+    }

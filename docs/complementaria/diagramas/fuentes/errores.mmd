@@ -1,0 +1,22 @@
+flowchart TD
+    A[AskAsync] --> V{¿Prompt válido?}
+    V -- No --> E1[ArgumentException<br/>mensaje de validación]
+    V -- Sí --> N{¿Hay internet?}
+    N -- No --> E2[InvalidOperationException<br/>Sin conexión a internet]
+    N -- Sí --> K{¿Hay clave del proveedor?}
+    K -- No --> E3[InvalidOperationException<br/>Configure la clave]
+    K -- Sí --> L{¿RequestLimiter permite?}
+    L -- No --> E4[InvalidOperationException<br/>Límite de uso: espere N s]
+    L -- Sí --> H[POST al proveedor]
+    H -->|2xx| OK[Respuesta]
+    H -->|4xx / 5xx| X[HttpRequestException con StatusCode]
+    H -->|sin respuesta| Y[HttpRequestException sin StatusCode]
+    H -->|60 s / Cancelar| Z[OperationCanceledException]
+    X --> M[AiErrorMapper]
+    Y --> M
+    Z --> M
+    E1 --> M
+    E2 --> M
+    E3 --> M
+    E4 --> M
+    M --> UI[Mensaje en español en la pantalla<br/>nunca muestra la clave]

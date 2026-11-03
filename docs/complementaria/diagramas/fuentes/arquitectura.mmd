@@ -1,0 +1,36 @@
+flowchart LR
+    subgraph DEV["Dispositivo (Windows / Android)"]
+      direction TB
+      subgraph UI["Vistas XAML (Shell + 5 pestañas)"]
+        V1["HomePage · ChatPage · ProjectsPage<br/>HistoryPage · ProfilePage"]
+        V2["SettingsPage · DetailPage<br/>ProjectDetailPage"]
+      end
+      VM["ViewModels (CommunityToolkit.Mvvm)<br/>Chat · History · Detail · Settings<br/>Home · Projects · ProjectDetail · Profile"]
+      subgraph SRV["Servicios (inyección de dependencias)"]
+        AIS["AiService<br/>(proveedor seleccionado)"]
+        KEY["ApiKeyService"]
+        DB["DatabaseService"]
+        PRO["ProfileService"]
+        AUX["PromptValidator · SensitiveDataDetector<br/>RequestLimiter · AiErrorMapper"]
+      end
+      SS[("SecureStorage<br/>claves cifradas")]
+      PF[("Preferences<br/>proveedor, modelo, perfil")]
+      SQL[("SQLite · AsistenteIA.db3<br/>ConversationRecord · Project")]
+      UI -->|binding / comandos| VM
+      VM --> AIS
+      VM --> DB
+      VM --> PRO
+      VM --> AUX
+      AIS --> KEY
+      AIS --> AUX
+      KEY --> SS
+      PRO --> PF
+      AIS --> PF
+      DB --> SQL
+    end
+    subgraph CLOUD["Proveedores de IA (HTTPS · POST + JSON)"]
+      G["Google Gemini<br/>generativelanguage.googleapis.com<br/>/v1beta/models/{modelo}:generateContent<br/>encabezado x-goog-api-key"]
+      P["Pollinations<br/>gen.pollinations.ai<br/>/v1/chat/completions<br/>Authorization: Bearer"]
+    end
+    AIS -->|HttpClient singleton · 60 s| G
+    AIS -->|HttpClient singleton · 60 s| P

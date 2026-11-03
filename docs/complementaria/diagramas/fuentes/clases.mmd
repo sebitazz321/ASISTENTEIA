@@ -1,0 +1,111 @@
+classDiagram
+    direction TB
+    class AiService {
+      -HttpClient _client
+      -ApiKeyService _keyService
+      -RequestLimiter _limiter
+      +AskAsync(prompt, model, token, projectContext, provider) Task~string~
+      +GetSelectedProvider()$ AiProvider
+      +SetSelectedProvider(provider)$
+      +GetSavedModel(provider)$ string
+      +SaveModel(provider, model)$
+      +GetFriendlyMessage(ex, cancelled)$ string
+      -AskGeminiAsync() Task~string~
+      -AskPollinationsAsync() Task~string~
+    }
+    class AiProviderCatalog {
+      <<static>>
+      +Gemini AiProviderInfo
+      +Pollinations AiProviderInfo
+      +All IReadOnlyList
+      +Get(provider) AiProviderInfo
+      +Parse(value) AiProvider
+      +NormalizeModel(info, model) string
+      +BuildEndpoint(info, model) string
+    }
+    class AiProviderInfo {
+      +AiProvider Id
+      +string DisplayName
+      +string Endpoint
+      +string DefaultModel
+      +string KeyHeader
+      +string SecureStorageKey
+      +string ModelPreferenceKey
+    }
+    class AiProvider {
+      <<enumeration>>
+      Gemini
+      Pollinations
+    }
+    class AiErrorMapper {
+      <<static>>
+      +GetFriendlyMessage(ex, cancelled, provider)$ string
+      +FromStatus(code, detail, provider)$ string
+    }
+    class ApiKeyService {
+      +SaveAsync(key, provider) Task
+      +GetAsync(provider) Task~string~
+      +Remove(provider) bool
+      +HasKeyAsync(provider) Task~bool~
+    }
+    class DatabaseService {
+      -SQLiteAsyncConnection _database
+      +GetItemsAsync() Task~List~
+      +GetItemsByProjectAsync(id) Task~List~
+      +SaveAsync(record) Task~int~
+      +DeleteAsync(record) Task~int~
+      +GetProjectsAsync() Task~List~
+      +SaveProjectAsync(p) Task~int~
+      +DeleteProjectAsync(p) Task
+      +GetStatsAsync() Task
+    }
+    class ConversationRecord {
+      +int Id
+      +string Prompt
+      +string Answer
+      +DateTime CreatedAt
+      +string Category
+      +bool IsVerified
+      +int ProjectId
+      +string Note
+    }
+    class Project {
+      +int Id
+      +string Name
+      +string Description
+      +DateTime CreatedAt
+    }
+    class ChatViewModel {
+      +string Prompt
+      +string Answer
+      +AskCommand
+      +CancelCommand
+      +SaveCommand
+    }
+    class SettingsViewModel {
+      +AiProviderInfo SelectedProvider
+      +string SelectedModel
+      +SaveKeyCommand
+      +TestConnectionCommand
+      +RemoveKeyCommand
+    }
+    class PromptValidator { <<static>> +Validate(text)$ string }
+    class SensitiveDataDetector { <<static>> +Detect(text)$ IReadOnlyList }
+    class RequestLimiter { +TryAcquire(out wait) bool }
+
+    ChatViewModel --> AiService
+    ChatViewModel --> DatabaseService
+    ChatViewModel ..> SensitiveDataDetector
+    ChatViewModel ..> PromptValidator
+    SettingsViewModel --> AiService
+    SettingsViewModel --> ApiKeyService
+    AiService --> ApiKeyService
+    AiService --> RequestLimiter
+    AiService ..> AiProviderCatalog
+    AiService ..> AiErrorMapper
+    AiService ..> PromptValidator
+    AiProviderCatalog --> AiProviderInfo
+    AiProviderInfo --> AiProvider
+    DatabaseService --> ConversationRecord
+    DatabaseService --> Project
+    Project "1" --> "0..*" ConversationRecord : ProjectId
